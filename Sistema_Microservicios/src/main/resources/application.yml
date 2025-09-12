@@ -7,22 +7,23 @@ spring:
   config:
     activate:
       on-profile: dev
-  datasource:
-    url: jdbc:h2:mem:dataservice_db;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
 
 server:
-  port: 8081
+  port: 8080
+
+# URL del microservicio de datos (Etapa 1 debe estar levantado en 8081)
+data:
+  service:
+    url: http://localhost:8081
+
+# Feign/HTTP timeouts y logging
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 3000
+        readTimeout: 5000
+        loggerLevel: basic
+logging:
+  level:
+    com.TP_6.Sistema_Microservicios.business_service.client: DEBUG
