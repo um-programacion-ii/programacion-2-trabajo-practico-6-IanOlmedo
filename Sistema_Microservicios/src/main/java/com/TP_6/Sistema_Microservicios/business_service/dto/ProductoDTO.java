@@ -3,7 +3,11 @@ package com.TP_6.Sistema_Microservicios.business_service.dto;
 import lombok.*;
 import java.math.BigDecimal;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ProductoDTO {
     private Long id;
     private String nombre;
