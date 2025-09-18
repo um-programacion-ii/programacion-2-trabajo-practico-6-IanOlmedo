@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @FeignClient(
-        name = "data-service",
+        name = "SistemaMicroservicios",
         url = "${data.service.url}",
         configuration = FeignConfig.class
 )
