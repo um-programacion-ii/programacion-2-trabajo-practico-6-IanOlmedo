@@ -7,12 +7,14 @@ import com.TP_6.Sistema_Microservicios.data_service.repository.CategoriaReposito
 import com.TP_6.Sistema_Microservicios.data_service.repository.ProductoRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @Transactional
+@AllArgsConstructor
 public class ProductoService {
 
     private final ProductoRepository productoRepository;

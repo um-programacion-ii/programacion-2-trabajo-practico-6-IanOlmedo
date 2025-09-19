@@ -9,8 +9,8 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>data-service</artifactId>
-    <name>data-service</name>
+    <artifactId>data_service</artifactId>
+    <name>data_service</name>
     <description>Microservicio para gestionar la data</description>
 
     <dependencies>
@@ -85,7 +85,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.TP_6.Sistema_Microservicios.data-service.SistemaMicroserviciosApplication</mainClass>
+                    <mainClass>com.TP_6.Sistema_Microservicios.SistemaMicroserviciosApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>

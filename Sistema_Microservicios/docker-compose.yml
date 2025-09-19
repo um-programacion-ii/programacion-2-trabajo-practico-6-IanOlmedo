@@ -19,23 +19,23 @@ services:
       timeout: 20s
       retries: 10
 
-  postgres:
-    image: postgres:16
-    container_name: microservices_postgres
-    environment:
-      POSTGRES_DB: microservices_db
-      POSTGRES_USER: microservices_user
-      POSTGRES_PASSWORD: microservices_pass
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - microservices_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U microservices_user -d microservices_db"]
-      timeout: 20s
-      retries: 10
+  # postgres:
+  #   image: postgres:16
+  #   container_name: microservices_postgres
+  #   environment:
+  #     POSTGRES_DB: microservices_db
+  #     POSTGRES_USER: microservices_user
+  #     POSTGRES_PASSWORD: microservices_pass
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - microservices_network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U microservices_user -d microservices_db"]
+  #     timeout: 20s
+  #     retries: 10
 
 volumes:
   mysql_data:
