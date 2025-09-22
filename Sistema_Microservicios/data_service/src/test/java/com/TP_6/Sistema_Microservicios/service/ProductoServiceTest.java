@@ -40,9 +40,11 @@ class ProductoServiceTest {
     @Test
     void buscarPorId_encontrado() {
         Producto p = new Producto();
-        p.setId(10L);
-        when(productoRepo.findById(10L)).thenReturn(Optional.of(p));
-        assertEquals(10L, service.buscarPorId(10L).getId());
+        p.setId(1L);
+        when(productoRepo.findById(1L)).thenReturn(Optional.of(p));
+
+        Producto out = service.buscarPorId(1L);
+        assertEquals(1L, out.getId());
     }
 
     @Test
@@ -52,17 +54,24 @@ class ProductoServiceTest {
     }
 
     @Test
+    void buscarPorCategoria_ok() {
+        when(productoRepo.findByCategoria_NombreIgnoreCase("Tecnología"))
+                .thenReturn(List.of(new Producto(), new Producto(), new Producto()));
+        assertEquals(3, service.buscarPorCategoria("Tecnología").size());
+    }
+
+    @Test
     void guardar_asociaCategoriaPorNombre() {
         Producto p = new Producto();
         p.setNombre("Mouse");
         p.setPrecio(new BigDecimal("1000.00"));
 
         Categoria cat = new Categoria();
-        cat.setId(1L);
+        cat.setId(7L);
         cat.setNombre("Tecnología");
 
         when(categoriaRepo.findByNombreIgnoreCase("Tecnología")).thenReturn(Optional.of(cat));
-        when(productoRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(productoRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
         Producto out = service.guardar(p, "Tecnología");
         assertNotNull(out.getCategoria());
@@ -71,5 +80,43 @@ class ProductoServiceTest {
         ArgumentCaptor<Producto> captor = ArgumentCaptor.forClass(Producto.class);
         verify(productoRepo).save(captor.capture());
         assertEquals("Mouse", captor.getValue().getNombre());
+    }
+
+    @Test
+    void actualizar_modificaCamposBasicos() {
+        Producto existente = new Producto();
+        existente.setId(5L);
+        existente.setNombre("Viejo");
+        existente.setDescripcion("Desc vieja");
+        existente.setPrecio(new BigDecimal("10"));
+
+        when(productoRepo.findById(5L)).thenReturn(Optional.of(existente));
+
+        Producto cambios = new Producto();
+        cambios.setNombre("Nuevo");
+        cambios.setDescripcion("Desc nueva");
+        cambios.setPrecio(new BigDecimal("20"));
+
+        Producto out = service.actualizar(5L, cambios);
+        assertEquals("Nuevo", out.getNombre());
+        assertEquals("Desc nueva", out.getDescripcion());
+        assertEquals(new BigDecimal("20"), out.getPrecio());
+
+        // la implementación no llama a save() explícitamente
+        verify(productoRepo, never()).save(any());
+    }
+
+    @Test
+    void eliminar_ok() {
+        when(productoRepo.existsById(3L)).thenReturn(true);
+        service.eliminar(3L);
+        verify(productoRepo).deleteById(3L);
+    }
+
+    @Test
+    void eliminar_noExiste_lanza() {
+        when(productoRepo.existsById(404L)).thenReturn(false);
+        assertThrows(EntityNotFoundException.class, () -> service.eliminar(404L));
+        verify(productoRepo, never()).deleteById(anyLong());
     }
 }
