@@ -14,15 +14,14 @@ import java.util.List;
 
 @Service
 @Transactional
-@AllArgsConstructor
 public class ProductoService {
 
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
 
-    public ProductoService(ProductoRepository productoRepository, CategoriaRepository categoriaRepository, ProductoRepository productoRepository1, CategoriaRepository categoriaRepository1) {
-        this.productoRepository = productoRepository1;
-        this.categoriaRepository = categoriaRepository1;
+    public ProductoService(ProductoRepository productoRepository, CategoriaRepository categoriaRepository) {
+        this.productoRepository = productoRepository;
+        this.categoriaRepository = categoriaRepository;
 
     }
 

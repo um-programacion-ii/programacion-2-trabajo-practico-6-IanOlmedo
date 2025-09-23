@@ -2,4 +2,4 @@ spring:
   application:
     name: data-service
   profiles:
-    active: mysql # Cambia 'dev' por 'mysql' o 'postgres'
+    active: dev # Cambia 'dev' por 'mysql' o 'postgres'

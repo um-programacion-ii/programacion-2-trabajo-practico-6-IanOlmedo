@@ -1,4 +1,4 @@
-package com.TP_6.Sistema_Microservicios.service;
+package com.TP_6.Sistema_Microservicios.business_service.service;
 
 import com.TP_6.Sistema_Microservicios.business_service.client.DataServiceClient;
 import com.TP_6.Sistema_Microservicios.business_service.dto.InventarioDTO;
