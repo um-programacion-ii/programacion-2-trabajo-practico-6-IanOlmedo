@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: data-service
+  profiles:
+    active: dev # Cambia 'dev' por 'mysql' o 'postgres'
