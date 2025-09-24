@@ -19,12 +19,12 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = BusinessController.class)  // <— apunta al CONTROLLER
+@WebMvcTest(controllers = BusinessController.class)
 class BusinessControllerWebTest {
 
     @Autowired MockMvc mvc;
 
-    @MockBean ProductoBusinessService service;  // <— se mockea el service
+    @MockBean ProductoBusinessService service;
 
     @Test
     void GET_listar_ok() throws Exception {
