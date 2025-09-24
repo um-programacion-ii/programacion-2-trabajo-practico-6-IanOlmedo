@@ -1,4 +1,4 @@
-package com.TP_6.Sistema_Microservicios.controller;
+package com.TP_6.Sistema_Microservicios.data_service.controller;
 
 import com.TP_6.Sistema_Microservicios.SistemaMicroserviciosApplication;
 import com.TP_6.Sistema_Microservicios.data_service.entity.Categoria;

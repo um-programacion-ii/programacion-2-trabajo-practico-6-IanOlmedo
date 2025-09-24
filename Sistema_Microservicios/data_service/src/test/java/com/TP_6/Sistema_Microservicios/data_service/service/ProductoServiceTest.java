@@ -1,4 +1,4 @@
-package com.TP_6.Sistema_Microservicios.service;
+package com.TP_6.Sistema_Microservicios.data_service.service;
 
 import com.TP_6.Sistema_Microservicios.data_service.entity.Categoria;
 import com.TP_6.Sistema_Microservicios.data_service.entity.Producto;
