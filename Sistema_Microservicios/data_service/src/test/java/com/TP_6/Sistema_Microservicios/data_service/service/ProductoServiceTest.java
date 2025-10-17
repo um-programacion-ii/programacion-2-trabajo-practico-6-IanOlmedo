@@ -4,8 +4,7 @@ import com.TP_6.Sistema_Microservicios.data_service.entity.Categoria;
 import com.TP_6.Sistema_Microservicios.data_service.entity.Producto;
 import com.TP_6.Sistema_Microservicios.data_service.repository.CategoriaRepository;
 import com.TP_6.Sistema_Microservicios.data_service.repository.ProductoRepository;
-import com.TP_6.Sistema_Microservicios.data_service.service.ProductoService;
-import jakarta.persistence.EntityNotFoundException;
+import com.TP_6.Sistema_Microservicios.data_service.service.impl.ProductoServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -27,7 +26,7 @@ class ProductoServiceTest {
     void setUp() {
         productoRepo = mock(ProductoRepository.class);
         categoriaRepo = mock(CategoriaRepository.class);
-        service = new ProductoService(productoRepo, categoriaRepo);
+        service = new ProductoServiceImpl(productoRepo, categoriaRepo);
     }
 
     @Test
@@ -45,19 +44,30 @@ class ProductoServiceTest {
 
         Producto out = service.buscarPorId(1L);
         assertEquals(1L, out.getId());
+        verify(productoRepo).findById(1L);
     }
 
     @Test
-    void buscarPorId_noExiste_lanza() {
+    void buscarPorId_noExiste_lanzaIllegalArgument() {
         when(productoRepo.findById(99L)).thenReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> service.buscarPorId(99L));
+        assertThrows(IllegalArgumentException.class, () -> service.buscarPorId(99L));
+        verify(productoRepo).findById(99L);
     }
 
     @Test
     void buscarPorCategoria_ok() {
         when(productoRepo.findByCategoria_NombreIgnoreCase("Tecnología"))
                 .thenReturn(List.of(new Producto(), new Producto(), new Producto()));
+
         assertEquals(3, service.buscarPorCategoria("Tecnología").size());
+        verify(productoRepo).findByCategoria_NombreIgnoreCase("Tecnología");
+    }
+
+    @Test
+    void buscarPorCategoria_nullOVacio_devuelveListaVacia() {
+        assertTrue(service.buscarPorCategoria(null).isEmpty());
+        assertTrue(service.buscarPorCategoria("   ").isEmpty());
+        verify(productoRepo, never()).findByCategoria_NombreIgnoreCase(anyString());
     }
 
     @Test
@@ -74,16 +84,33 @@ class ProductoServiceTest {
         when(productoRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
         Producto out = service.guardar(p, "Tecnología");
+
         assertNotNull(out.getCategoria());
         assertEquals("Tecnología", out.getCategoria().getNombre());
 
         ArgumentCaptor<Producto> captor = ArgumentCaptor.forClass(Producto.class);
         verify(productoRepo).save(captor.capture());
         assertEquals("Mouse", captor.getValue().getNombre());
+        verify(categoriaRepo).findByNombreIgnoreCase("Tecnología");
     }
 
     @Test
-    void actualizar_modificaCamposBasicos() {
+    void guardar_sinCategoriaNombre_noBuscaNiCreaCategoria() {
+        Producto p = new Producto();
+        p.setNombre("Teclado");
+        p.setPrecio(new BigDecimal("2500.00"));
+
+        when(productoRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        Producto out = service.guardar(p, null);
+
+        assertNull(out.getCategoria());
+        verify(categoriaRepo, never()).findByNombreIgnoreCase(anyString());
+        verify(productoRepo).save(any(Producto.class));
+    }
+
+    @Test
+    void actualizar_modificaCamposBasicos_yPersiste() {
         Producto existente = new Producto();
         existente.setId(5L);
         existente.setNombre("Viejo");
@@ -91,6 +118,7 @@ class ProductoServiceTest {
         existente.setPrecio(new BigDecimal("10"));
 
         when(productoRepo.findById(5L)).thenReturn(Optional.of(existente));
+        when(productoRepo.save(any())).thenAnswer(i -> i.getArgument(0));
 
         Producto cambios = new Producto();
         cambios.setNombre("Nuevo");
@@ -98,12 +126,13 @@ class ProductoServiceTest {
         cambios.setPrecio(new BigDecimal("20"));
 
         Producto out = service.actualizar(5L, cambios);
+
         assertEquals("Nuevo", out.getNombre());
         assertEquals("Desc nueva", out.getDescripcion());
         assertEquals(new BigDecimal("20"), out.getPrecio());
 
-        // la implementación no llama a save() explícitamente
-        verify(productoRepo, never()).save(any());
+        verify(productoRepo).findById(5L);
+        verify(productoRepo).save(existente);
     }
 
     @Test
@@ -114,9 +143,9 @@ class ProductoServiceTest {
     }
 
     @Test
-    void eliminar_noExiste_lanza() {
+    void eliminar_noExiste_lanzaIllegalArgument() {
         when(productoRepo.existsById(404L)).thenReturn(false);
-        assertThrows(EntityNotFoundException.class, () -> service.eliminar(404L));
+        assertThrows(IllegalArgumentException.class, () -> service.eliminar(404L));
         verify(productoRepo, never()).deleteById(anyLong());
     }
 }

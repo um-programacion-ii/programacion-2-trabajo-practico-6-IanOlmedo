@@ -27,6 +27,5 @@ public class Inventario {
     private Integer stockMinimo;
 
     @Column(name = "fecha_actualizacion")
-    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime fechaActualizacion;
 }
