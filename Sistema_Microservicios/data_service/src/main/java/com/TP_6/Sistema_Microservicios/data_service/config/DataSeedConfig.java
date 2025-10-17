@@ -16,28 +16,34 @@ import java.time.LocalDateTime;
 public class DataSeedConfig {
 
     @Bean
-    CommandLineRunner seed(CategoriaRepository categoriaRepo, ProductoRepository productoRepo) {
+    CommandLineRunner seed(ProductoRepository productoRepo, CategoriaRepository categoriaRepo) {
         return args -> {
             if (productoRepo.count() > 0) return;
 
+            // Categoria
             Categoria cat = new Categoria();
             cat.setNombre("Tecnología");
-            cat.setDescripcion("Productos tech");
+            cat.setDescripcion("Productos tecnológicos");
             categoriaRepo.save(cat);
 
+            // Producto
             Producto p = new Producto();
-            p.setNombre("Mouse Gamer");
-            p.setDescripcion("RGB 7200 DPI");
+            p.setNombre("Notebook X");
+            p.setDescripcion("Equipo de alta performance");
             p.setPrecio(new BigDecimal("9999.90"));
             p.setCategoria(cat);
 
+            // Inventario
             Inventario inv = new Inventario();
             inv.setCantidad(15);
             inv.setStockMinimo(5);
             inv.setFechaActualizacion(LocalDateTime.now());
-            // vinculación bidireccional
-            p.setInventario(inv);
 
+
+            p.setInventario(inv);
+            inv.setProducto(p);
+
+            // Persistencia
             productoRepo.save(p);
         };
     }

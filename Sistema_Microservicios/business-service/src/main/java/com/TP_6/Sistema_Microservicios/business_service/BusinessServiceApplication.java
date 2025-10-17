@@ -6,8 +6,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Primary;
 
 
-@SpringBootApplication
 @EnableFeignClients(basePackages = "com.TP_6.Sistema_Microservicios.business_service.client")
+@SpringBootApplication
 public class BusinessServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(BusinessServiceApplication.class, args);

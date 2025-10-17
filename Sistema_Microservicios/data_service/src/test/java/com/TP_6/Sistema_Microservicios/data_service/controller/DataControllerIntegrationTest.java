@@ -18,18 +18,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(
-        classes = com.TP_6.Sistema_Microservicios.SistemaMicroserviciosApplication.class,
+        classes = SistemaMicroserviciosApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-
 @AutoConfigureMockMvc
-@ActiveProfiles("dev")   // usa application-dev.yml (H2 en memoria)
+@ActiveProfiles("dev") // H2 en memoria
 @Transactional
 class DataControllerIntegrationTest {
 
@@ -38,14 +38,19 @@ class DataControllerIntegrationTest {
     @Autowired CategoriaRepository categoriaRepo;
 
     private Long productoId;
+    private String categoriaNombre; // ← usamos un nombre único por ejecución
 
     @BeforeEach
     void seed() {
-        categoriaRepo.deleteAll();
+        // Limpieza defensiva (por si hay data precargada por data.sql/runner)
         productoRepo.deleteAll();
+        categoriaRepo.deleteAll();
+
+        // Nombre único para evitar choques con el índice único
+        categoriaNombre = "Tecnología Test " + UUID.randomUUID();
 
         Categoria cat = new Categoria();
-        cat.setNombre("Tecnología");
+        cat.setNombre(categoriaNombre);
         cat.setDescripcion("Cat de prueba");
         categoriaRepo.save(cat);
 
@@ -56,10 +61,12 @@ class DataControllerIntegrationTest {
         p.setCategoria(cat);
 
         Inventario inv = new Inventario();
-        inv.setCantidad(10);
-        inv.setStockMinimo(3);
+        inv.setCantidad(10);           // > stockMinimo → stockBajo = false
+        inv.setStockMinimo(5);         // el controller usa este mínimo para calcular stockBajo
         inv.setFechaActualizacion(LocalDateTime.now());
+
         p.setInventario(inv);
+        inv.setProducto(p);
 
         productoId = productoRepo.save(p).getId();
     }
@@ -69,7 +76,10 @@ class DataControllerIntegrationTest {
         mvc.perform(get("/data/productos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))))
-                .andExpect(jsonPath("$[0].nombre", not(emptyString())));
+                .andExpect(jsonPath("$[0].nombre", not(emptyString())))
+                .andExpect(jsonPath("$[0].categoriaNombre", anyOf(nullValue(), not(emptyString()))))
+                .andExpect(jsonPath("$[0].stock", anyOf(nullValue(), greaterThanOrEqualTo(0))))
+                .andExpect(jsonPath("$[0].stockBajo", anyOf(is(true), is(false))));
     }
 
     @Test
@@ -77,40 +87,49 @@ class DataControllerIntegrationTest {
         mvc.perform(get("/data/productos/{id}", productoId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(productoId))
-                .andExpect(jsonPath("$.nombre").value("Mouse Gamer"));
+                .andExpect(jsonPath("$.nombre").value("Mouse Gamer"))
+                .andExpect(jsonPath("$.categoriaNombre").value(categoriaNombre))
+                .andExpect(jsonPath("$.stock", greaterThanOrEqualTo(0)))
+                .andExpect(jsonPath("$.stockBajo").value(false)); // 10 > 5
     }
 
     @Test
     void GET_productoPorId_noExiste_404() throws Exception {
-        mvc.perform(get("/data/productos/{id}", 99999))
+        mvc.perform(get("/data/productos/{id}", 999999L))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void GET_porCategoria_ok() throws Exception {
-        mvc.perform(get("/data/productos/categoria/{nombre}", "Tecnología"))
+        mvc.perform(get("/data/productos/categoria/{nombre}", categoriaNombre))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].categoria.nombre").value("Tecnología"));
+                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))))
+                .andExpect(jsonPath("$[0].categoriaNombre").value(categoriaNombre))
+                .andExpect(jsonPath("$[0].stockBajo", anyOf(is(true), is(false))));
     }
 
     @Test
     void POST_crearProducto_ok() throws Exception {
-        String body = """
+        // Usamos la misma categoría creada en el seed (evita duplicados)
+        String body = String.format("""
         {
           "nombre": "Teclado Mecánico",
           "descripcion": "Blue Switch",
-          "precio": 19999.50
+          "precio": 19999.50,
+          "categoriaNombre": "%s",
+          "stock": 7
         }
-        """;
+        """, categoriaNombre);
 
         mvc.perform(post("/data/productos")
-                        .queryParam("categoria", "Tecnología")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", notNullValue()))
                 .andExpect(jsonPath("$.nombre").value("Teclado Mecánico"))
-                .andExpect(jsonPath("$.categoria.nombre").value("Tecnología"));
+                .andExpect(jsonPath("$.categoriaNombre").value(categoriaNombre))
+                .andExpect(jsonPath("$.stock").value(7))
+                .andExpect(jsonPath("$.stockBajo").value(false)); // 7 > 5
     }
 
     @Test
